@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>VLAD CHOKEV — GRIP CONTROL UNIT</title>
+<meta name="description" content="robin hood took from the rich and gave to the poor. this machine runs it backwards. $CHOKEV">
+<link rel="icon" href="assets/favicon.png">
+<meta property="og:title" content="VLAD CHOKEV — GRIP CONTROL UNIT">
+<meta property="og:description" content="robin hood took from the rich and gave to the poor. this machine runs it backwards.">
+<meta property="og:image" content="assets/ava.webp">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;900&family=Barlow+Semi+Condensed:wght@400;500;600&family=Martian+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --steel:#333a3f; --steel2:#262c31; --deep:#171b1e; --void:#0d1012;
+  --edge:#0a0c0e; --lip:rgba(255,255,255,.14);
+  --amber:#ffb02e; --amberg:rgba(255,176,46,.45);
+  --hazard:#f5c518; --sig:#e8402a; --go:#5ee02a;
+  --label:#c9d2d6; --dim:#7d8a90;
+  --disp:"Big Shoulders Display",Impact,sans-serif;
+  --body:"Barlow Semi Condensed",Verdana,sans-serif;
+  --led:"Martian Mono",ui-monospace,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--void); color:var(--label); font-family:var(--body); overflow-x:clip; -webkit-text-size-adjust:100%}
+body::before{content:""; position:fixed; inset:0; pointer-events:none; z-index:90;
+  background:radial-gradient(ellipse at 50% 40%, transparent 55%, rgba(0,0,0,.55) 100%)}
+img{max-width:100%; display:block}
+a{color:inherit}
+.wrap{width:min(1240px,100%); margin:0 auto; padding:0 16px}
+
+/* ---------- shared machine surfaces ---------- */
+.metal{
+  background:
+    repeating-linear-gradient(90deg, rgba(255,255,255,.028) 0 1px, transparent 1px 4px),
+    linear-gradient(180deg, var(--steel) 0%, var(--steel2) 62%, #20262a 100%);
+  border:2px solid var(--edge);
+  box-shadow: inset 0 1px 0 var(--lip), inset 0 -3px 0 rgba(0,0,0,.45), 0 4px 0 rgba(0,0,0,.5);
+  border-radius:5px; position:relative;
+}
+.screws:before,.screws:after,.screws>.sc{content:""; position:absolute; width:9px; height:9px; border-radius:50%;
+  background:radial-gradient(circle at 34% 30%, #99a4aa, #4a5359 60%, #1d2225);
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.6)}
+.screws:before{left:7px; top:7px} .screws:after{right:7px; top:7px}
+.screws>.sc.b1{left:7px; bottom:7px} .screws>.sc.b2{right:7px; bottom:7px}
+.hazard{height:14px; flex:none;
+  background:repeating-linear-gradient(45deg, var(--hazard) 0 13px, #1b1f22 13px 26px);
+  border-top:2px solid var(--edge); border-bottom:2px solid var(--edge)}
+
+/* ---------- top rail ---------- */
+.rail{position:sticky; top:0; z-index:70; background:linear-gradient(180deg,#2c3237,#1c2124);
+  border-bottom:2px solid var(--edge); box-shadow:0 3px 0 rgba(0,0,0,.45)}
+.rail .wrap{display:flex; align-items:center; gap:14px; padding-top:8px; padding-bottom:8px; flex-wrap:wrap}
+.plate{font-family:var(--disp); font-weight:900; font-size:clamp(22px,2.4vw,30px); white-space:nowrap; line-height:1; letter-spacing:.02em;
+  color:#eef3f5; text-shadow:0 2px 0 #000, 0 0 22px rgba(94,224,42,.25)}
+.plate span{color:var(--hazard)}
+.plate i{font-style:normal; font-family:var(--led); font-size:11px; color:var(--amber); margin-left:8px;
+  border:1px solid var(--amber); padding:2px 6px; border-radius:3px; vertical-align:3px; letter-spacing:.06em}
+.pitch{flex:1; min-width:240px; font-size:15px; line-height:1.3; color:var(--label); margin:0}
+.pitch b{color:#fff; font-weight:600}
+.tools{display:flex; gap:7px; align-items:center}
+.tg{font-family:var(--led); font-size:9.5px; letter-spacing:.04em; border:2px solid var(--edge); border-radius:4px;
+  background:linear-gradient(180deg,#484f55,#31383d); color:var(--label); padding:7px 9px; cursor:pointer;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.16), 0 3px 0 rgba(0,0,0,.5)}
+.tg.on{background:linear-gradient(180deg,#2a3f1f,#1b2a15); color:var(--go); text-shadow:0 0 8px rgba(94,224,42,.7)}
+.tg.buy{background:linear-gradient(180deg,#5a2119,#3a140f); color:#ffb3a8}
+
+/* ---------- the unit ---------- */
+.unit{min-height:calc(100svh - 58px); display:flex; flex-direction:column; padding:12px 0 0}
+.unit .wrap{flex:1; min-height:0; display:grid; gap:10px;
+  grid-template-columns:1.45fr .85fr; grid-template-rows:auto 1fr auto;
+  grid-template-areas:"win leds" "win panels" "deck deck"}
+.unit .wrap>*{min-width:0}
+.window{grid-area:win; min-height:210px}
+.leds{grid-area:leds}
+.panels{grid-area:panels; min-height:0; display:flex; flex-direction:column; gap:8px}
+.deck{grid-area:deck}
+
+.window{position:relative; overflow:hidden; cursor:pointer;
+  background:radial-gradient(ellipse at 50% 45%, #2b4a18 0%, #14210c 58%, #080c06 100%);
+  border:2px solid var(--edge); border-radius:5px;
+  box-shadow: inset 0 0 0 5px #1e2529, inset 0 0 34px rgba(0,0,0,.8), 0 4px 0 rgba(0,0,0,.5)}
+#heroImg{position:absolute; left:14px; right:14px; top:26px; bottom:14px; margin:auto;
+  max-width:calc(100% - 28px); max-height:calc(100% - 40px); width:auto; height:auto; object-fit:contain;
+  filter:drop-shadow(0 10px 16px rgba(0,0,0,.7)); transform-origin:50% 86%}
+.window .glass{position:absolute; inset:0; pointer-events:none; z-index:6;
+  background:
+    linear-gradient(118deg, rgba(255,255,255,.10) 0 16%, transparent 17% 42%, rgba(255,255,255,.05) 43% 50%, transparent 51%),
+    repeating-linear-gradient(rgba(0,0,0,.20) 0 1px, transparent 1px 3px)}
+.wlab{position:absolute; left:12px; top:9px; z-index:7; font-family:var(--led); font-size:9.5px; letter-spacing:.06em;
+  color:var(--go); text-shadow:0 0 9px rgba(94,224,42,.8)}
+.wlab b{font-weight:400; color:var(--amber); text-shadow:0 0 9px var(--amberg)}
+.wpoke{position:absolute; right:12px; top:9px; z-index:7; font-family:var(--led); font-size:9px; color:var(--dim); letter-spacing:.04em}
+#drop{position:absolute; inset:0; pointer-events:none; z-index:5; overflow:hidden}
+.coin{position:absolute; width:26px; height:18px; background-image:url(assets/cut-bill.webp); background-size:100% 100%;
+  filter:drop-shadow(0 2px 3px rgba(0,0,0,.6))}
+.window.shake #heroImg{animation:jit .09s steps(2) infinite}
+@keyframes jit{50%{transform:translate(1.5px,-1px)}}
+
+/* readout column */
+.leds{display:grid; grid-template-columns:1fr 1fr; gap:8px; align-content:start}
+.led{padding:8px 9px 7px; border-radius:4px; border:2px solid var(--edge);
+  background:linear-gradient(180deg,#0c0f11,#131719); box-shadow:inset 0 0 12px rgba(0,0,0,.9), 0 3px 0 rgba(0,0,0,.45)}
+.led u{display:block; text-decoration:none; font-family:var(--led); font-size:8px; letter-spacing:.1em; color:var(--dim); margin-bottom:3px}
+.led b{display:block; font-family:var(--led); font-weight:600; font-size:clamp(14px,2vw,19px); color:var(--amber);
+  text-shadow:0 0 12px var(--amberg); letter-spacing:.02em}
+.led.sig b{color:var(--sig); text-shadow:0 0 12px rgba(232,64,42,.5)}
+.led.go b{color:var(--go); text-shadow:0 0 12px rgba(94,224,42,.5)}
+.mani{flex:1.25; min-height:120px; overflow:auto; padding:9px 10px 8px}
+.mani h4{font-family:var(--led); font-size:8.5px; letter-spacing:.12em; margin:0 0 7px; color:var(--dim); padding-left:20px}
+.mani ol{list-style:none; margin:0; padding:0; counter-reset:m}
+.mani li{counter-increment:m; font-family:var(--led); font-size:9.5px; padding:4px 0 4px 26px; position:relative;
+  color:#5d6c72; border-bottom:1px solid rgba(255,255,255,.05)}
+.mani li:before{content:"P" counter(m); position:absolute; left:0; color:#4a565b}
+.mani li.got{color:var(--go); text-shadow:0 0 8px rgba(94,224,42,.35)}
+.mani li.got:after{content:" ✓"; color:var(--hazard)}
+
+/* control deck */
+.deck{flex:none; padding:11px 12px 12px; display:grid; grid-template-columns:1fr 290px; gap:12px; align-items:center}
+.deck>*{min-width:0}
+.gaugebox{min-width:0}
+.gauge{position:relative; height:44px; border:2px solid var(--edge); border-radius:3px; overflow:hidden;
+  background:linear-gradient(180deg,#0a0d0f,#141a1d);
+  box-shadow:inset 0 0 14px rgba(0,0,0,.9)}
+.gauge .ticks{position:absolute; inset:0; z-index:1;
+  background:repeating-linear-gradient(90deg, rgba(255,255,255,.10) 0 1px, transparent 1px 5%)}
+.gauge .zone{position:absolute; right:0; top:0; bottom:0; width:12%; z-index:1;
+  background:repeating-linear-gradient(45deg, rgba(232,64,42,.30) 0 5px, transparent 5px 10px)}
+#band{position:absolute; top:0; bottom:0; width:24%; left:0; z-index:2;
+  background:linear-gradient(180deg, rgba(94,224,42,.55), rgba(94,224,42,.18));
+  border-left:2px solid var(--go); border-right:2px solid var(--go); box-shadow:0 0 16px rgba(94,224,42,.35) inset}
+#needle{position:absolute; top:-4px; bottom:-4px; width:5px; left:0; z-index:4; background:#fff;
+  box-shadow:0 0 0 2px #000, 0 0 14px rgba(255,255,255,.9)}
+.gscale{display:flex; justify-content:space-between; font-family:var(--led); font-size:8px; letter-spacing:.08em;
+  color:var(--dim); margin-top:5px}
+.bars{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px}
+.pb{position:relative; height:15px; border:2px solid var(--edge); border-radius:3px; overflow:hidden;
+  background:#0a0d0f; box-shadow:inset 0 0 8px rgba(0,0,0,.9)}
+.pb i{position:absolute; left:0; top:0; bottom:0; width:0%; background:var(--go); box-shadow:0 0 12px rgba(94,224,42,.6)}
+.pb.s i{background:var(--sig); box-shadow:0 0 12px rgba(232,64,42,.6)}
+.pb span{position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  font-family:var(--led); font-size:7.5px; letter-spacing:.14em; color:#dfe4e6; text-shadow:0 1px 2px #000}
+
+.gripwrap{display:flex; align-items:center; gap:12px}
+.lamps{display:flex; flex-direction:column; gap:8px; flex:none}
+.lamp{width:20px; height:20px; border-radius:50%; border:2px solid var(--edge);
+  background:radial-gradient(circle at 35% 30%, #3b4449, #171b1e); position:relative}
+.lamp.on.g{background:radial-gradient(circle at 35% 30%, #bdffa0, var(--go) 55%, #1d3a0f); box-shadow:0 0 14px rgba(94,224,42,.8)}
+.lamp.on.r{background:radial-gradient(circle at 35% 30%, #ffc0b5, var(--sig) 55%, #45140d); box-shadow:0 0 14px rgba(232,64,42,.8)}
+#grip{flex:1; min-width:0; font-family:var(--disp); font-weight:900; font-size:clamp(17px,2.4vw,24px); letter-spacing:.03em;
+  padding:14px; min-height:74px; display:flex; align-items:center; justify-content:center; text-align:center;
+  border-radius:7px; cursor:pointer; touch-action:none; color:#fff4f0;
+  border:2px solid var(--edge);
+  background:linear-gradient(180deg,#f0553c 0%, #cf3220 46%, #8e1d10 100%);
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.28), inset 0 -4px 0 rgba(0,0,0,.35), 0 0 0 5px #4b5257, 0 9px 0 var(--edge);
+  text-shadow:0 2px 0 rgba(0,0,0,.4)}
+#grip.dn{background:linear-gradient(180deg,#8fe25c 0%, #4fbe1f 46%, #275f11 100%); color:#0d1a06;
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.3), inset 0 -4px 0 rgba(0,0,0,.35), 0 0 0 5px #4b5257, 0 3px 0 var(--edge);
+  text-shadow:none}
+#grip.done{background:linear-gradient(180deg,#ffd97a,#e0a41c 46%,#8a6208); color:#231802; text-shadow:none}
+.statusline{flex:none; margin-top:9px; padding:7px 10px; border:2px solid var(--edge); border-radius:3px;
+  background:#0a0d0f; box-shadow:inset 0 0 10px rgba(0,0,0,.9);
+  font-family:var(--led); font-size:9.5px; color:var(--amber); text-shadow:0 0 9px var(--amberg);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+
+/* ---------- sections ---------- */
+section{position:relative}
+.h2{font-family:var(--disp); font-weight:900; font-size:clamp(34px,6vw,70px); line-height:.9; margin:0 0 6px;
+  color:#eef3f5; letter-spacing:.01em; text-shadow:0 3px 0 #000}
+.h2 span{color:var(--hazard)}
+.sub{font-family:var(--led); font-size:9.5px; letter-spacing:.1em; color:var(--dim); margin:0 0 22px}
+.pad{padding:46px 0 52px}
+
+#idea{background:linear-gradient(180deg,#101416,#161b1e); border-top:2px solid var(--edge)}
+.ideagrid{display:grid; grid-template-columns:1.1fr .9fr; gap:26px; align-items:start}
+.ideagrid>*{min-width:0}
+.ideagrid p{font-size:16px; line-height:1.6; color:#b6c1c6; margin:0 0 14px; max-width:56ch}
+.ideagrid p.first{font-size:20px; color:#fff; font-weight:500}
+.logbox{flex:1; min-height:110px; overflow:auto; padding:9px 10px 8px}
+.logbox h4{font-family:var(--led); font-size:8.5px; letter-spacing:.12em; margin:0 0 7px; color:var(--dim); padding-left:20px}
+.logbox p{font-family:var(--led); font-size:9px; line-height:1.5; margin:0 0 6px; color:#9fb0a5}
+.ratings{padding:12px 14px 14px}
+.ratings h4{font-family:var(--led); font-size:8.5px; letter-spacing:.12em; margin:0 0 10px; color:var(--dim); padding-left:20px}
+.ratings dl{margin:0; display:grid; grid-template-columns:auto 1fr; gap:7px 12px; align-items:baseline}
+.ratings dt{font-family:var(--led); font-size:8.5px; letter-spacing:.08em; color:var(--dim)}
+.ratings dd{margin:0; font-family:var(--led); font-size:10px; color:var(--amber); text-shadow:0 0 9px var(--amberg); text-align:right}
+.logbox p.bad{color:#ff8f80} .logbox p.win{color:var(--go)}
+
+#pockets{background:var(--void); border-top:2px solid var(--edge)}
+.bins{display:grid; grid-template-columns:repeat(4,1fr); gap:10px}
+.bins>*{min-width:0}
+.bin{padding:0; overflow:hidden; display:flex; flex-direction:column}
+.bin .cap{display:flex; align-items:center; gap:8px; padding:8px 24px 8px 22px; border-bottom:2px solid var(--edge);
+  background:linear-gradient(180deg,#414a50,#2b3237)}
+.bin .cap em{font-style:normal; font-family:var(--led); font-size:8px; color:var(--hazard); letter-spacing:.06em}
+.bin .cap h5{font-family:var(--disp); font-weight:700; font-size:18px; margin:0; color:#eef3f5; line-height:1}
+.bin .body{padding:11px 12px 13px; font-size:14px; line-height:1.55; color:#aab6bb; flex:1}
+.bin.lock{filter:saturate(.25) brightness(.62)}
+.bin.lock .body{color:transparent; text-shadow:0 0 7px rgba(170,182,187,.55)}
+.bin .stamp{margin-left:auto; font-family:var(--led); font-size:7.5px; letter-spacing:.1em; color:var(--dim);
+  border:1px solid currentColor; padding:2px 5px; border-radius:2px}
+.bin.got .stamp{color:var(--go)}
+
+#buy{background:linear-gradient(180deg,#161b1e,#101416); border-top:2px solid var(--edge)}
+.console{position:relative; height:330px; padding:14px; overflow:hidden}
+.console .grid{position:absolute; inset:0; opacity:.35;
+  background:repeating-linear-gradient(90deg, rgba(255,255,255,.05) 0 1px, transparent 1px 34px),
+             repeating-linear-gradient(rgba(255,255,255,.05) 0 1px, transparent 1px 34px)}
+#fieldGuy{position:absolute; left:10px; bottom:0; height:60%; width:auto; z-index:2; pointer-events:none; opacity:.9;
+  filter:drop-shadow(0 8px 14px rgba(0,0,0,.7))}
+#sellBtn{position:absolute; right:18px; top:18px; z-index:3; font-family:var(--disp); font-weight:900; font-size:17px;
+  padding:12px 20px; border-radius:6px; border:2px solid var(--edge); color:#0d1a06;
+  background:linear-gradient(180deg,#8fe25c,#4fbe1f 50%,#275f11);
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.3), 0 0 0 4px #4b5257, 0 5px 0 var(--edge)}
+#sellBtn u{display:block; text-decoration:none; font-family:var(--led); font-size:7px; letter-spacing:.1em; opacity:.75}
+#buyBtn{position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); z-index:4;
+  font-family:var(--disp); font-weight:900; font-size:clamp(20px,3vw,28px); text-decoration:none;
+  padding:16px 30px; border-radius:6px; border:2px solid var(--edge); color:#fff2ee;
+  background:linear-gradient(180deg,#f0553c,#cf3220 50%,#8e1d10);
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.26), 0 0 0 4px #4b5257, 0 6px 0 var(--edge);
+  cursor:pointer; white-space:nowrap;
+  transition:left .16s cubic-bezier(.2,1.4,.4,1), top .16s cubic-bezier(.2,1.4,.4,1)}
+#buyBtn u{display:block; text-decoration:none; font-family:var(--led); font-size:7px; letter-spacing:.1em; opacity:.75}
+#buyBtn.soon{opacity:.55}
+#buyBtn.caught{background:linear-gradient(180deg,#ffd97a,#e0a41c 50%,#8a6208); color:#231802; transition:none;
+  left:50%!important; top:50%!important; transform:translate(-50%,-50%)!important}
+#buyMsg{position:absolute; left:50%; bottom:14px; transform:translateX(-50%); z-index:5; width:92%; text-align:center;
+  font-family:var(--led); font-size:9.5px; letter-spacing:.06em; color:var(--sig); text-shadow:0 0 10px rgba(232,64,42,.4)}
+.ghost{position:absolute; z-index:5; font-family:var(--led); font-size:9px; color:var(--sig); pointer-events:none}
+
+#spec{background:var(--void); border-top:2px solid var(--edge)}
+.plateblock{padding:0; overflow:hidden}
+.prow{display:grid; grid-template-columns:190px 1fr; gap:16px; padding:13px 16px; border-bottom:1px solid rgba(255,255,255,.07)}
+.prow:last-child{border-bottom:0}
+.prow>*{min-width:0}
+.prow b{font-family:var(--led); font-size:10px; letter-spacing:.1em; color:var(--hazard); font-weight:600}
+.prow span{font-size:14.5px; line-height:1.55; color:#aab6bb}
+.exhibits{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:20px}
+.exhibits>*{min-width:0}
+.ex{overflow:hidden; display:flex; flex-direction:column}
+.ex img{aspect-ratio:16/9; object-fit:contain; width:100%; padding:10px;
+  background:radial-gradient(ellipse at 50% 50%, #22381a, #0c1108); border-bottom:2px solid var(--edge)}
+.ex .body{padding:11px 12px 13px; font-size:13.5px; line-height:1.55; color:#aab6bb}
+.ex em{display:block; font-style:normal; font-family:var(--led); font-size:8px; letter-spacing:.1em;
+  color:var(--hazard); margin-bottom:6px}
+
+footer{background:linear-gradient(180deg,#1b2124,#0d1012); border-top:2px solid var(--edge); padding:34px 0 40px; text-align:center}
+footer .fm{font-family:var(--disp); font-weight:900; font-size:clamp(40px,9vw,92px); line-height:.9; color:#2f383d;
+  text-shadow:0 2px 0 #000}
+footer p{font-family:var(--led); font-size:9px; letter-spacing:.1em; color:var(--dim); margin:8px 0}
+footer a{color:var(--amber)}
+#caBox{display:inline-flex; gap:8px; align-items:center; cursor:pointer; border:2px solid var(--edge); border-radius:4px;
+  padding:7px 11px; background:#0a0d0f; font-family:var(--led); font-size:9px; color:var(--amber); margin-top:6px}
+
+/* win */
+#rain{position:fixed; inset:0; pointer-events:none; z-index:140; overflow:hidden}
+#win{position:fixed; inset:0; z-index:150; display:none; align-items:center; justify-content:center; padding:18px;
+  background:rgba(4,7,9,.82)}
+#win.on{display:flex}
+#win .card{max-width:500px; width:100%; padding:22px; text-align:center}
+#win h3{font-family:var(--disp); font-weight:900; font-size:clamp(30px,7vw,52px); margin:0 0 4px; color:var(--hazard);
+  text-shadow:0 3px 0 #000}
+#win .amt{font-family:var(--led); font-weight:600; font-size:23px; color:var(--amber); text-shadow:0 0 14px var(--amberg); margin:8px 0 10px}
+#win img{width:56%; margin:2px auto 8px; filter:drop-shadow(0 8px 14px rgba(0,0,0,.7))}
+#win p{font-size:14.5px; line-height:1.55; color:#aab6bb; margin:0 0 16px}
+#winClose{font-family:var(--disp); font-weight:900; font-size:18px; padding:12px 26px; border-radius:6px; cursor:pointer;
+  border:2px solid var(--edge); color:#fff2ee; background:linear-gradient(180deg,#f0553c,#cf3220 50%,#8e1d10);
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.26), 0 5px 0 var(--edge)}
+
+@media(max-width:1040px){
+  .unit .wrap{grid-template-columns:1fr; grid-template-rows:auto auto auto auto;
+    grid-template-areas:"win" "leds" "deck" "panels"}
+  .window{height:clamp(200px,32svh,270px); min-height:0}
+  .mani{max-height:200px; flex:none}
+  .logbox{max-height:200px; flex:none}
+  .leds{grid-template-columns:repeat(4,1fr)}
+  .deck{grid-template-columns:1fr}
+  .ideagrid{grid-template-columns:1fr}
+  .bins{grid-template-columns:repeat(2,1fr)}
+  .exhibits{grid-template-columns:1fr}
+  .prow{grid-template-columns:1fr; gap:5px}
+  .unit{min-height:auto; padding-bottom:6px}
+}
+@media(max-width:620px){
+  .plate{font-size:24px}
+  .pitch{font-size:14px; order:3; min-width:100%}
+  .leds{grid-template-columns:1fr 1fr}
+  .bins{grid-template-columns:1fr}
+  .console{height:300px}
+  .gripwrap{gap:9px}
+  .lamps{flex-direction:row}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important}}
+</style>
+</head>
+<body>
+
+<script>
+/* ============ SETTINGS ============ */
+window.CONTRACT = "";
+window.TWITTER  = "";
+window.BUY_URL  = "";
+/* ================================== */
+</script>
+
+<header class="rail"><div class="wrap">
+  <div class="plate">VLAD <span>CHOKEV</span><i>$CHOKEV</i></div>
+  <p class="pitch"><b>robin hood took from the rich and gave to the poor.</b> this machine runs that backwards. hold the button.</p>
+  <div class="tools">
+    <button class="tg on" id="sfxBtn">SOUND</button>
+    <button class="tg" id="musBtn">MUSIC</button>
+    <a class="tg buy" href="#buy">BUY</a>
+  </div>
+</div></header>
+
+<main class="unit"><div class="wrap">
+
+    <div class="window" id="window">
+      <span class="wlab">UNIT 1194 · <b id="vState">SUBJECT: COOPERATIVE</b></span>
+      <span class="wpoke">tap him · he pays</span>
+      <img id="heroImg" src="assets/cut-full.webp" alt="the subject, mid-reconsideration of his position on wealth redistribution">
+      <div id="drop"></div>
+      <div class="glass"></div>
+    </div>
+
+    <div class="leds">
+      <div class="led"><u>EXTRACTED</u><b id="hMoney">$0</b></div>
+      <div class="led go"><u>GRIP</u><b id="hRound">0/8</b></div>
+      <div class="led sig"><u>SLIPS</u><b id="hSlip">0</b></div>
+      <div class="led"><u>PRESSURE</u><b id="hPress">LOOSE</b></div>
+    </div>
+
+    <div class="panels">
+      <div class="mani metal screws"><span class="sc b1"></span><span class="sc b2"></span>
+        <h4>SEIZURE MANIFEST</h4>
+        <ol id="mani"></ol>
+      </div>
+      <div class="logbox metal screws"><span class="sc b1"></span><span class="sc b2"></span>
+        <h4>LEDGER · LIVE</h4>
+        <div id="logBox"><p>unit idle. nothing extracted yet.</p></div>
+      </div>
+    </div>
+
+  <div class="metal screws deck"><span class="sc b1"></span><span class="sc b2"></span>
+    <div class="gaugebox">
+      <div class="gauge">
+        <div class="ticks"></div>
+        <div class="zone"></div>
+        <div id="band"></div>
+        <div id="needle"></div>
+      </div>
+      <div class="gscale"><span>LOOSE</span><span>FIRM — KEEP IT HERE</span><span>TOO MUCH</span></div>
+      <div class="bars">
+        <div class="pb"><i id="pbFill"></i><span>SQUEEZE</span></div>
+        <div class="pb s"><i id="pbSlip"></i><span>SLIPPING</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="gripwrap">
+        <div class="lamps"><span class="lamp g" id="lampG"></span><span class="lamp r" id="lampR"></span></div>
+        <button id="grip">HOLD TO SQUEEZE</button>
+      </div>
+      <div class="statusline" id="statusLine">UNIT READY · EIGHT POCKETS TO GO</div>
+    </div>
+  </div>
+
+</div>
+<div class="hazard"></div>
+</main>
+
+<section id="idea" class="pad"><div class="wrap">
+  <h2 class="h2">THE <span>IDEA</span></h2>
+  <p class="sub">FILE 01 · WHY THIS MACHINE EXISTS</p>
+  <div class="ideagrid">
+    <div>
+      <p class="first">he had a whole operation. bow, arrows, a forest, an ideology, a hat with a feather in it and absolutely no idea what a spread was. i turned up with one hand and one very simple question about where the money actually goes.</p>
+      <p>every time he reaches for buy, the button is temporarily unavailable. every time he reaches for sell, it works beautifully and it works instantly. that is the entire protocol and i am not going to dress it up as anything cleverer than that.</p>
+      <p>the unit above does the rest. you keep the pressure inside the green band, he keeps handing things over, and the ledger keeps a running count of exactly how much came out of a man who spent eight hundred years insisting he had nothing.</p>
+    </div>
+    <div class="ratings metal screws"><span class="sc b1"></span><span class="sc b2"></span>
+      <h4>UNIT DATA PLATE</h4>
+      <dl>
+        <dt>MODEL</dt><dd>GRIP CONTROL UNIT 1194</dd>
+        <dt>OPERATOR</dt><dd>ONE, UNSUPERVISED</dd>
+        <dt>SUBJECTS</dt><dd>ONE, UNWILLING</dd>
+        <dt>DUTY CYCLE</dt><dd>CONTINUOUS</dd>
+        <dt>BUY CHANNEL</dt><dd>TEMPORARILY UNAVAILABLE</dd>
+        <dt>SELL CHANNEL</dt><dd>OPERATIONAL</dd>
+        <dt>RETURNED TO POOR</dt><dd>$0.00 SINCE 1194</dd>
+      </dl>
+    </div>
+  </div>
+</div></section>
+
+<section id="pockets" class="pad"><div class="wrap">
+  <h2 class="h2">PARTS <span>RECOVERED</span></h2>
+  <p class="sub">FILE 02 · EIGHT BINS · THEY UNLOCK AS THE UNIT WORKS</p>
+  <div class="bins" id="bins"></div>
+</div></section>
+
+<section id="buy" class="pad"><div class="wrap">
+  <h2 class="h2">THE <span>CONSOLE</span></h2>
+  <p class="sub">FILE 03 · TWO CONTROLS · ONE OF THEM IS IN SERVICE</p>
+  <div class="console metal screws" id="field"><span class="sc b1"></span><span class="sc b2"></span>
+    <div class="grid"></div>
+    <img id="fieldGuy" src="assets/cut-vlad.webp" alt="the operator, personally responsible for where that control just went">
+    <span id="sellBtn">SELL<u>IN SERVICE</u></span>
+    <a class="soon" id="buyBtn" href="#">BUY<u>STATUS PENDING</u></a>
+    <div id="buyMsg">experiencing higher than usual demand</div>
+  </div>
+</div></section>
+
+<section id="spec" class="pad"><div class="wrap">
+  <h2 class="h2">RATING <span>PLATE</span></h2>
+  <p class="sub">FILE 04 · SHORT DOCUMENT · HE DID NOT READ HIS EITHER</p>
+  <div class="plateblock metal screws"><span class="sc b1"></span><span class="sc b2"></span>
+    <div class="prow"><b>SUPPLY</b><span>one billion, every single one of them out in the open, none of them sitting in a drawer with my name on the front. i already have his drawer, and one drawer is more than enough for any one man.</span></div>
+    <div class="prow"><b>LIQUIDITY</b><span>burned, permanently, gone, no lever left anywhere in the building. i am fully aware of how it looks that i of all people went and burned something specifically so nobody could take it back later.</span></div>
+    <div class="prow"><b>TAX</b><span>zero on the way in and zero on the way out, which is already a better arrangement than anything he ever negotiated with the sheriff. there is no fee, no cut, no small print at the bottom of this row.</span></div>
+    <div class="prow"><b>OWNERSHIP</b><span>renounced, signed away, no keys, no admin, no pause switch. the only thing i still personally hold in this entire project is clearly visible in the window at the top of the page.</span></div>
+  </div>
+  <div class="exhibits">
+    <div class="ex metal screws"><span class="sc b1"></span><span class="sc b2"></span>
+      <img src="assets/cut-bow.webp" alt="a bow, reclassified as scrap and quietly written off">
+      <div class="body"><em>EXHIBIT A · THE BOW</em>a bow is just leverage with a couple of extra steps and in eight hundred years he never once thought about it that way. i took it, i put it in a drawer, and the drawer has since been reclassified as a product feature.</div></div>
+    <div class="ex metal screws"><span class="sc b1"></span><span class="sc b2"></span>
+      <img src="assets/cut-quiver.webp" alt="twelve arrows, hand fletched, no resale value">
+      <div class="body"><em>EXHIBIT B · THE ARROWS</em>twelve arrows, hand fletched, beautiful work, absolutely no resale value in the current market. i moved them for scrap and routed the proceeds into a pooled account he is not on the paperwork for.</div></div>
+    <div class="ex metal screws"><span class="sc b1"></span><span class="sc b2"></span>
+      <img src="assets/cut-boot.webp" alt="the boots, kept so the walk home stays memorable">
+      <div class="body"><em>EXHIBIT C · THE BOOTS</em>i took the boots specifically so that the walk back to the forest would stay with him for a while. he mentioned that the ground was cold. i mentioned that volatility is simply part of participating.</div></div>
+  </div>
+</div></section>
+
+<footer>
+  <div class="wrap">
+    <div class="fm">VLAD CHOKEV</div>
+    <div id="caBox">CA <b class="ca-val">not deployed yet</b></div>
+    <p><a class="xLink" id="xBtn" href="#" target="_blank" rel="noopener">X / TWITTER</a></p>
+    <p>VLAD CHOKEV · UNIT 1194 · THE FOREST HAS BEEN NOTIFIED AND THE FOREST IS NOT COMMENTING</p>
+  </div>
+</footer>
+
+<div id="rain"></div>
+<div id="win"><div class="card metal screws"><span class="sc b1"></span><span class="sc b2"></span>
+  <h3>POCKETS EMPTY</h3>
+  <img src="assets/cut-vlad.webp" alt="a man at the exact moment his position stops being a position">
+  <div class="amt" id="winAmt">$0</div>
+  <p>he has nothing left to sell and there is no button to buy with. we are, technically, in equilibrium. you may now close this and go and think about what kind of person you are.</p>
+  <button id="winClose">FINE</button>
+</div></div>
+
+<script>
+/* ---------------- audio ---------------- */
+var AC=null, sfxOn=true, vol=1;
+function ac(){ try{ if(!AC){ var C=window.AudioContext||window.webkitAudioContext; if(!C) return null; AC=new C(); } if(AC.state==="suspended") AC.resume(); return AC; }catch(e){ return null; } }
+function tone(f1,f2,dur,type,g){
+  if(!sfxOn) return; var c=ac(); if(!c) return;
+  var o=c.createOscillator(), gg=c.createGain(), t=c.currentTime;
+  o.type=type||"sine"; o.frequency.setValueAtTime(f1,t);
+  if(f2&&f2!==f1) o.frequency.exponentialRampToValueAtTime(Math.max(20,f2),t+dur);
+  gg.gain.setValueAtTime(.0001,t); gg.gain.exponentialRampToValueAtTime((g||.06)*vol,t+.012);
+  gg.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  o.connect(gg); gg.connect(c.destination); o.start(t); o.stop(t+dur+.05);
+}
+function noise(dur,freq,q,g){
+  if(!sfxOn) return; var c=ac(); if(!c) return;
+  var n=Math.floor(c.sampleRate*dur), b=c.createBuffer(1,n,c.sampleRate), d=b.getChannelData(0);
+  for(var i=0;i<n;i++) d[i]=(Math.random()*2-1)*(1-i/n);
+  var s=c.createBufferSource(); s.buffer=b;
+  var f=c.createBiquadFilter(); f.type="bandpass"; f.frequency.value=freq; f.Q.value=q||6;
+  var gg=c.createGain(); gg.gain.value=(g||.08)*vol;
+  s.connect(f); f.connect(gg); gg.connect(c.destination); s.start();
+}
+function sCash(){ tone(1180,1560,.09,"square",.05); setTimeout(function(){ tone(1560,1980,.16,"square",.05); },70); setTimeout(function(){ noise(.16,4200,3,.05); },90); }
+function sCoin(){ tone(1500+Math.random()*500,900,.1,"triangle",.045); }
+function sRatchet(){ tone(120,96,.05,"square",.03); }
+function sWheeze(){ noise(.42,760,2.2,.075); tone(420,120,.42,"sawtooth",.04); }
+function sDeny(){ tone(210,130,.18,"square",.06); }
+function sClunk(){ tone(88,52,.14,"square",.075); noise(.1,900,4,.04); }
+/* hydraulic motor while holding */
+var HUM=null;
+function humOn(){
+  if(!sfxOn) return; var c=ac(); if(!c||HUM) return;
+  var o=c.createOscillator(), o2=c.createOscillator(), g=c.createGain(), f=c.createBiquadFilter();
+  f.type="lowpass"; f.frequency.value=420;
+  o.type="sawtooth"; o.frequency.value=58; o2.type="square"; o2.frequency.value=29;
+  g.gain.setValueAtTime(.0001,c.currentTime); g.gain.exponentialRampToValueAtTime(.05*vol,c.currentTime+.09);
+  o.connect(f); o2.connect(f); f.connect(g); g.connect(c.destination); o.start(); o2.start();
+  HUM={o:o,o2:o2,g:g,f:f};
+}
+function humOff(){
+  if(!HUM) return; var c=ac(); var h=HUM; HUM=null;
+  try{ h.g.gain.cancelScheduledValues(c.currentTime); h.g.gain.setValueAtTime(h.g.gain.value,c.currentTime);
+    h.g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+.14);
+    h.o.stop(c.currentTime+.2); h.o2.stop(c.currentTime+.2); }catch(e){}
+}
+function humPitch(p){ if(HUM){ try{ HUM.o.frequency.value=52+p*46; HUM.f.frequency.value=320+p*900; }catch(e){} } }
+
+/* music: corporate hold-music running over a hydraulic press */
+var MEL=[698.46,880,1046.5,880,783.99,659.25,587.33,659.25, 622.25,783.99,932.33,783.99,698.46,587.33,523.25,587.33];
+var BAS=[87.31,0,130.81,0,116.54,0,174.61,0, 103.83,0,155.56,0,116.54,0,196,0];
+var CHD=[[349.23,440,523.25],0,0,0,[311.13,392,466.16],0,0,0,[293.66,369.99,440],0,0,0,[329.63,415.3,493.88],0,0,0];
+var STEP=.30, MU={on:false,t:null,step:0,next:0};
+function mn(f,at,dur,type,g,lp){
+  if(!f) return; var c=ac(); if(!c) return;
+  var o=c.createOscillator(), gg=c.createGain(), fl=c.createBiquadFilter();
+  fl.type="lowpass"; fl.frequency.value=lp||2200;
+  o.type=type; o.frequency.setValueAtTime(f,at);
+  gg.gain.setValueAtTime(.0001,at); gg.gain.exponentialRampToValueAtTime(g,at+.03);
+  gg.gain.exponentialRampToValueAtTime(.0001,at+dur);
+  o.connect(fl); fl.connect(gg); gg.connect(c.destination); o.start(at); o.stop(at+dur+.05);
+}
+function musSchedule(){
+  var c=ac(); if(!c) return;
+  while(MU.next < c.currentTime+.5){
+    var i=MU.step%16, at=Math.max(MU.next,c.currentTime+.02);
+    mn(MEL[i],at,.34,"triangle",.028,2600);
+    mn(BAS[i],at,.30,"sine",.05,700);
+    if(CHD[i]) for(var k=0;k<CHD[i].length;k++) mn(CHD[i][k],at,.52,"sine",.012,1500);
+    if(i%4===2){ var n=Math.floor(c.sampleRate*.05), b=c.createBuffer(1,n,c.sampleRate), d=b.getChannelData(0);
+      for(var j=0;j<n;j++) d[j]=(Math.random()*2-1)*(1-j/n);
+      var s=c.createBufferSource(); s.buffer=b; var f=c.createBiquadFilter(); f.type="highpass"; f.frequency.value=7000;
+      var g=c.createGain(); g.gain.value=.011; s.connect(f); f.connect(g); g.connect(c.destination); s.start(at); }
+    MU.next+=STEP; MU.step++;
+  }
+}
+function musToggle(on){
+  MU.on=on; var b=document.getElementById("musBtn");
+  if(on){ b.classList.add("on"); var c=ac(); if(!c){ MU.on=false; b.classList.remove("on"); return; }
+    MU.next=c.currentTime+.1; if(!MU.t) MU.t=setInterval(musSchedule,90); }
+  else { b.classList.remove("on"); if(MU.t){ clearInterval(MU.t); MU.t=null; } }
+}
+document.addEventListener("visibilitychange",function(){
+  if(document.hidden&&MU.on&&MU.t){ clearInterval(MU.t); MU.t=null; }
+  else if(!document.hidden&&MU.on&&!MU.t){ var c=ac(); if(c){ MU.next=c.currentTime+.1; MU.t=setInterval(musSchedule,90); } }
+});
+document.getElementById("musBtn").addEventListener("click",function(){ musToggle(!MU.on); });
+document.getElementById("sfxBtn").addEventListener("click",function(){
+  sfxOn=!sfxOn; this.classList.toggle("on",sfxOn); if(!sfxOn) humOff(); else sCoin();
+});
+/* music starts on first real interaction — no loading gate */
+(function(){
+  var armed=false;
+  function arm(e){
+    if(armed) return;
+    if(e.target && e.target.closest && e.target.closest("#musBtn,#sfxBtn")) return;
+    armed=true; ac(); musToggle(true);
+    ["pointerdown","keydown","touchstart","wheel"].forEach(function(t){ document.removeEventListener(t,arm,true); });
+  }
+  ["pointerdown","keydown","touchstart","wheel"].forEach(function(t){ document.addEventListener(t,arm,true); });
+})();
+
+/* ---------------- money ---------------- */
+function dropIn(host,x,y,scale){
+  var d=document.createElement("div"); d.className="coin";
+  var W=host.clientWidth||320, H=host.clientHeight||320;
+  if(x===undefined){ x=Math.random()*W; y=-20; }
+  var sc=scale||(.7+Math.random()*.7);
+  d.style.width=(26*sc)+"px"; d.style.height=(18*sc)+"px";
+  d.style.left=(x-13)+"px"; d.style.top=(y-9)+"px"; host.appendChild(d);
+  var vx=(Math.random()-.5)*7, vy=-4-Math.random()*5, n=0, rot=(Math.random()-.5)*20, px=x-13, py=y-9;
+  (function stp(){
+    n++; vy+=.40; vx*=.995; px+=vx; py+=vy;
+    d.style.transform="translate("+(px-(x-13))+"px,"+(py-(y-9))+"px) rotate("+(n*rot)+"deg)";
+    if(n>150||py>H+340){ d.remove(); return; }
+    if(n>128) d.style.opacity=String(1-(n-128)/22);
+    requestAnimationFrame(stp);
+  })();
+}
+var drop=document.getElementById("drop"), winEl=document.getElementById("window");
+winEl.addEventListener("click",function(e){
+  var r=drop.getBoundingClientRect();
+  for(var i=0;i<7;i++) dropIn(drop, e.clientX-r.left+(Math.random()-.5)*60, e.clientY-r.top+(Math.random()-.5)*34);
+  sCoin(); sRatchet();
+});
+
+/* ---------------- data ---------------- */
+var POCK=[
+ ["LOOSE CHANGE","the first thing out of a man is always the small stuff. coins, a button, half a biscuit he had been saving for somebody poorer than himself. i counted all of it in front of him, twice, slowly, out loud."],
+ ["THE ARROWS","twelve of them, hand fletched, genuinely lovely craftsmanship and genuinely zero resale value at current prices. they went for scrap and the scrap went into a pooled account that he is not listed on."],
+ ["THE BOW","he built an entire moral philosophy on a piece of bent wood and never once worked out that it was just leverage. i took it off him and put it somewhere safe, which is to say somewhere he cannot reach."],
+ ["THE HAT","the feather was the tell. nobody who puts a feather in a hat has ever finished reading a terms of service page, and mine is extremely long and extremely boring in the middle bit."],
+ ["THE BELT","he kept everything on that belt. pouches, a knife, and a small notebook recording who owed what to whom across three counties. the notebook is mine now and several of the entries have been revised."],
+ ["THE BOOTS","i took the boots specifically so that the walk home would stay with him. he raised the point that the ground was quite cold. i raised the point that volatility is simply part of participating."],
+ ["THE REPUTATION","for eight hundred years he was the good one in the story and i was not in the story at all. that spread has now fully closed, and it closed in a single afternoon, inside a machine."],
+ ["THE WHOLE IDEA","take from the rich, give to the poor. beautiful concept, catastrophic unit economics, not one point of fee capture anywhere in the entire flow. i have kept the first half and retired the second."]
+];
+var MANI=["LOOSE CHANGE","THE ARROWS","THE BOW","THE HAT","THE BELT","THE BOOTS","THE REPUTATION","THE WHOLE IDEA"];
+(function(){
+  var m=document.getElementById("mani"), c=document.getElementById("bins"), s="", s2="";
+  for(var i=0;i<8;i++){
+    s+="<li id=\"mn"+i+"\">"+MANI[i]+"</li>";
+    s2+="<div class=\"bin metal screws lock\" id=\"pk"+i+"\"><span class=\"sc b1\"></span><span class=\"sc b2\"></span>"+
+        "<div class=\"cap\"><div><em>BIN P"+(i+1)+"</em><h5>"+POCK[i][0]+"</h5></div><span class=\"stamp\">SEALED</span></div>"+
+        "<div class=\"body\">"+POCK[i][1]+"</div></div>";
+  }
+  m.innerHTML=s; c.innerHTML=s2;
+})();
+
+/* ---------------- THE GRIP ---------------- */
+var G={round:0, needle:0, held:false, prog:0, slip:0, money:0, slips:0, t:0, over:0, done:false, run:false};
+var bandEl=document.getElementById("band"), needEl=document.getElementById("needle"),
+    gripBtn=document.getElementById("grip"), heroImg=document.getElementById("heroImg"),
+    pbFill=document.getElementById("pbFill"), pbSlip=document.getElementById("pbSlip"),
+    logBox=document.getElementById("logBox"), vState=document.getElementById("vState"),
+    statusLine=document.getElementById("statusLine"),
+    lampG=document.getElementById("lampG"), lampR=document.getElementById("lampR");
+var PRIZE=[1240,3180,5400,8800,14200,22500,41000,88000];
+var STATES=["SUBJECT: COOPERATIVE","SUBJECT: NEGOTIATING","SUBJECT: OBJECTING","SUBJECT: BARGAINING","SUBJECT: EMOTIONAL","SUBJECT: RESIGNED","SUBJECT: QUIET","SUBJECT: FULLY LIQUID"];
+function bw(){ return .30-G.round*.0235; }
+function bspeed(){ return .42+G.round*.14; }
+function need(){ return 1.5+G.round*.16; }
+var logged=false;
+function log(txt,cls){
+  if(!logged){ logBox.innerHTML=""; logged=true; }
+  var p=document.createElement("p"); if(cls) p.className=cls; p.textContent=txt;
+  logBox.insertBefore(p,logBox.firstChild);
+  while(logBox.children.length>26) logBox.removeChild(logBox.lastChild);
+  statusLine.textContent=txt.toUpperCase();
+}
+function money(n){ return "$"+n.toLocaleString("en-US"); }
+function hud(){
+  document.getElementById("hMoney").textContent=money(G.money);
+  document.getElementById("hRound").textContent=G.round+"/8";
+  document.getElementById("hSlip").textContent=G.slips;
+  var p=G.needle;
+  document.getElementById("hPress").textContent = p<.3?"LOOSE":(p<.72?"FIRM":"TOO MUCH");
+}
+function bandCenter(t){
+  var w=bw(), c=.5+.33*Math.sin(t*bspeed())+.11*Math.sin(t*bspeed()*1.73+1.1);
+  return Math.min(1-w/2, Math.max(w/2, c));
+}
+var last=0, moneyTick=0;
+function loop(ts){
+  if(!last) last=ts;
+  var dt=Math.min(.05,(ts-last)/1000); last=ts;
+  if(!G.done){
+    G.t+=dt;
+    G.needle += (G.held? .80 : -.58)*dt;
+    if(G.needle>1) G.needle=1;
+    if(G.needle<0) G.needle=0;
+    var w=bw(), c=bandCenter(G.t), inside=Math.abs(G.needle-c)<w/2;
+    if(G.needle>.965){ inside=false; G.over+=dt*1.6; } else G.over=Math.max(0,G.over-dt);
+    if(G.run){
+      if(inside){
+        G.prog+=dt; G.slip=Math.max(0,G.slip-dt*.75);
+        moneyTick+=dt;
+        if(moneyTick>.2){ moneyTick=0; var r=drop.getBoundingClientRect();
+          dropIn(drop, r.width*(.35+Math.random()*.3), r.height*.48);
+          if(Math.random()<.5) sRatchet(); }
+      } else {
+        G.slip+=dt*(G.over>.35?1.9:1.0);
+        if(G.slip>=1.5) failRound();
+      }
+      if(G.prog>=need()) winRound();
+    }
+    bandEl.style.width=(w*100)+"%";
+    bandEl.style.left=((c-w/2)*100)+"%";
+    needEl.style.left="calc("+(G.needle*100)+"% - 2px)";
+    pbFill.style.width=Math.min(100,(G.prog/need())*100)+"%";
+    pbSlip.style.width=Math.min(100,(G.slip/1.5)*100)+"%";
+    lampG.classList.toggle("on", !!(G.run&&inside));
+    lampR.classList.toggle("on", !!(G.run&&!inside));
+    var sq=1+G.needle*.09, st=1-G.needle*.06;
+    heroImg.style.transform="scale("+st+","+sq+")";
+    humPitch(G.needle);
+    hud();
+  }
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+function failRound(){
+  G.slips++; var lost=Math.round(PRIZE[G.round]*.35);
+  G.money=Math.max(0,G.money-lost);
+  G.prog=0; G.slip=0; G.needle=0; G.run=false; G.over=0; G.held=false;
+  winEl.classList.remove("shake"); humOff();
+  gripBtn.textContent="HE SLIPPED — GO AGAIN";
+  gripBtn.classList.remove("dn");
+  log("slipped. he wriggled an arm free and took back "+money(lost)+".","bad");
+  sWheeze();
+}
+function winRound(){
+  var prize=PRIZE[G.round];
+  G.money+=prize;
+  log("round "+(G.round+1)+" · "+MANI[G.round].toLowerCase()+" came out of the pocket. "+money(prize)+".","win");
+  document.getElementById("mn"+G.round).classList.add("got");
+  var card=document.getElementById("pk"+G.round);
+  card.classList.remove("lock"); card.classList.add("got");
+  card.querySelector(".stamp").textContent="RECOVERED";
+  var r=drop.getBoundingClientRect();
+  for(var i=0;i<14;i++) setTimeout(function(){ dropIn(drop, r.width*(.2+Math.random()*.6), r.height*.42); }, i*45);
+  sCash();
+  G.round++; G.prog=0; G.slip=0; G.needle=0; G.run=false; G.over=0; G.held=false;
+  winEl.classList.remove("shake"); humOff();
+  if(G.round>=8){ finish(); return; }
+  vState.textContent=STATES[G.round];
+  gripBtn.textContent="HOLD TO SQUEEZE";
+  gripBtn.classList.remove("dn");
+  hud();
+}
+function finish(){
+  G.done=true; humOff(); winEl.classList.remove("shake");
+  gripBtn.textContent="POCKETS EMPTY";
+  gripBtn.classList.add("done"); gripBtn.classList.remove("dn");
+  vState.textContent="SUBJECT: FULLY LIQUID";
+  log("nothing left in him. total extracted "+money(G.money)+".","win");
+  document.getElementById("winAmt").textContent=money(G.money);
+  document.getElementById("win").classList.add("on");
+  var rain=document.getElementById("rain");
+  for(var i=0;i<90;i++) setTimeout(function(){ dropIn(rain); },i*60);
+  sCash(); setTimeout(sCash,240); setTimeout(sCash,480);
+}
+function gripDown(e){
+  if(e) e.preventDefault();
+  if(G.done) return;
+  ac();
+  if(!G.run){ G.run=true; G.slip=0; G.prog=0; G.over=0; if(!logged) log("grip established. eight pockets to go."); }
+  G.held=true; gripBtn.classList.add("dn");
+  gripBtn.textContent="SQUEEZING";
+  winEl.classList.add("shake"); humOn(); sClunk();
+}
+function gripUp(){
+  if(!G.held) return;
+  G.held=false; gripBtn.classList.remove("dn");
+  winEl.classList.remove("shake"); humOff();
+}
+gripBtn.addEventListener("pointerdown",gripDown);
+window.addEventListener("pointerup",gripUp);
+window.addEventListener("pointercancel",gripUp);
+window.addEventListener("blur",gripUp);
+gripBtn.addEventListener("keydown",function(e){ if(e.code==="Space"||e.code==="Enter"){ gripDown(e); } });
+gripBtn.addEventListener("keyup",function(e){ if(e.code==="Space"||e.code==="Enter"){ gripUp(); } });
+vState.textContent=STATES[0];
+document.getElementById("winClose").addEventListener("click",function(){ document.getElementById("win").classList.remove("on"); });
+
+/* ---------------- runaway BUY ---------------- */
+var MSG=["experiencing higher than usual demand","temporarily unavailable","please try again in a moment",
+"position closing only right now","this one is for your own protection","routing your order to my hand","ok. ok. fine."];
+var dodges=0, caught=false, buyBtn=document.getElementById("buyBtn"),
+    field=document.getElementById("field"), buyMsg=document.getElementById("buyMsg");
+function dodge(e){
+  if(caught) return;
+  if(e) e.preventDefault();
+  var r=field.getBoundingClientRect(), b=buyBtn.getBoundingClientRect();
+  var pad=16, maxL=r.width-b.width-pad, maxT=r.height-b.height-pad;
+  var nl=pad+Math.random()*Math.max(10,maxL), nt=pad+Math.random()*Math.max(10,maxT-34);
+  var g=document.createElement("span"); g.className="ghost"; g.textContent="nope";
+  g.style.left=(b.left-r.left)+"px"; g.style.top=(b.top-r.top-14)+"px"; field.appendChild(g);
+  setTimeout(function(){ g.remove(); },700);
+  buyBtn.style.transform="none"; buyBtn.style.left=nl+"px"; buyBtn.style.top=nt+"px";
+  dodges++; sDeny();
+  buyMsg.textContent=MSG[Math.min(dodges,MSG.length-1)];
+  if(dodges>=6){
+    caught=true; buyBtn.classList.add("caught"); buyBtn.innerHTML="BUY $CHOKEV<u>RELEASED</u>";
+    buyMsg.textContent="fine. take it. i am not going to chase you about it.";
+    sCash();
+  }
+}
+buyBtn.addEventListener("pointerenter",dodge);
+buyBtn.addEventListener("pointerdown",function(e){ if(!caught) dodge(e); });
+buyBtn.addEventListener("click",function(e){ if(!caught) e.preventDefault(); });
+</script>
+
+<script>
+var CA=(window.CONTRACT||"").trim(), TW=(window.TWITTER||"").trim(), BUY=(window.BUY_URL||"").trim();
+if(CA){
+  Array.prototype.forEach.call(document.querySelectorAll(".ca-val"),function(e){ e.textContent=CA.slice(0,6)+"…"+CA.slice(-4); });
+  document.getElementById("caBox").addEventListener("click",function(){
+    var b=this.querySelector("b"), old=b.textContent;
+    navigator.clipboard.writeText(CA).then(function(){ b.textContent="copied"; setTimeout(function(){ b.textContent=old; },1200); });
+  });
+}
+if(TW){ Array.prototype.forEach.call(document.querySelectorAll("#xBtn,.xLink"),function(a){ a.href=TW; }); }
+var _b=document.getElementById("buyBtn");
+if(_b){
+  if(BUY){ _b.href=BUY; _b.target="_blank"; _b.rel="noopener"; _b.classList.remove("soon"); }
+  else{ _b.addEventListener("click",function(e){ e.preventDefault(); }); }
+}
+</script>
+</body>
+</html>
